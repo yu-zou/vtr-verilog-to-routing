@@ -134,18 +134,21 @@ jobs:
       name: "GCC 7 (Ubuntu Bionic - 18.04)"
       env:
          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+         - BUILD_TYPE=release_strict
       script:
         - ./.github/travis/build.sh
     - stage: Build Compatibility
       name: "GCC 8 (Ubuntu Latest)"
       env:
          - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+         - BUILD_TYPE=release_strict
       script:
         - ./.github/travis/build.sh
     - stage: Build Compatibility
       name: "GCC 9 (Latest Release)"
       env:
          - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+         - BUILD_TYPE=release_strict
       script:
         - ./.github/travis/build.sh
     - stage: Build Compatibility
