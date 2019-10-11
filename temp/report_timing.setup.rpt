@@ -1,148 +1,62 @@
-#Timing report of worst 5 path(s)
+#Timing report of worst 2 path(s)
 # Unit scale: 1e-09 seconds
 # Output precision: 3
 
 #Path 1
-Startpoint: benchmark1^b_in~0.inpad[0] (.input clocked by benchmark1^clock)
-Endpoint  : benchmark1^out_FF.D[0] (.latch clocked by benchmark1^clock)
+Startpoint: and_latch^a_in.inpad[0] (.input clocked by and_latch^clock)
+Endpoint  : and_latch^out_FF.D[0] (.latch clocked by and_latch^clock)
 Path Type : setup
 
 Point                                                             Incr      Path
 --------------------------------------------------------------------------------
-clock benchmark1^clock (rise edge)                               0.000     0.000
+clock and_latch^clock (rise edge)                                0.000     0.000
 clock source latency                                             0.000     0.000
 input external delay                                             0.000     0.000
-benchmark1^b_in~0.inpad[0] (.input)                              0.000     0.000
-benchmark1^tempOut~2.in[0] (.names)                              0.295     0.295
-benchmark1^tempOut~2.out[0] (.names)                             0.225     0.520
-n32.in[0] (.names)                                               0.054     0.575
-n32.out[0] (.names)                                              0.225     0.800
-benchmark1^out_FF.D[0] (.latch)                                  0.000     0.800
-data arrival time                                                          0.800
+and_latch^a_in.inpad[0] (.input)                                 0.000     0.000
+n9.in[0] (.names)                                                0.358     0.358
+n9.out[0] (.names)                                               0.225     0.583
+and_latch^out_FF.D[0] (.latch)                                   0.000     0.583
+data arrival time                                                          0.583
 
-clock benchmark1^clock (rise edge)                               0.000     0.000
+clock and_latch^clock (rise edge)                                0.000     0.000
 clock source latency                                             0.000     0.000
-benchmark1^clock.inpad[0] (.input)                               0.000     0.000
-benchmark1^out_FF.clk[0] (.latch)                                0.095     0.095
+and_latch^clock.inpad[0] (.input)                                0.000     0.000
+and_latch^out_FF.clk[0] (.latch)                                 0.095     0.095
 clock uncertainty                                                0.000     0.095
 cell setup time                                                 -0.216    -0.121
 data required time                                                        -0.121
 --------------------------------------------------------------------------------
 data required time                                                        -0.121
-data arrival time                                                         -0.800
+data arrival time                                                         -0.583
 --------------------------------------------------------------------------------
-slack (VIOLATED)                                                          -0.921
+slack (VIOLATED)                                                          -0.704
 
 
 #Path 2
-Startpoint: benchmark1^a_in~0.inpad[0] (.input clocked by benchmark1^clock)
-Endpoint  : out:benchmark1^tempOut~0.outpad[0] (.output clocked by benchmark1^clock)
-Path Type : setup
-
-Point                                                               Incr      Path
-----------------------------------------------------------------------------------
-clock benchmark1^clock (rise edge)                                 0.000     0.000
-clock source latency                                               0.000     0.000
-input external delay                                               0.000     0.000
-benchmark1^a_in~0.inpad[0] (.input)                                0.000     0.000
-benchmark1^tempOut~0.in[0] (.names)                                0.295     0.295
-benchmark1^tempOut~0.out[0] (.names)                               0.225     0.520
-out:benchmark1^tempOut~0.outpad[0] (.output)                       0.232     0.753
-data arrival time                                                            0.753
-
-clock benchmark1^clock (rise edge)                                 0.000     0.000
-clock source latency                                               0.000     0.000
-clock uncertainty                                                  0.000     0.000
-output external delay                                              0.000     0.000
-data required time                                                           0.000
-----------------------------------------------------------------------------------
-data required time                                                           0.000
-data arrival time                                                           -0.753
-----------------------------------------------------------------------------------
-slack (VIOLATED)                                                            -0.753
-
-
-#Path 3
-Startpoint: benchmark1^b_in~0.inpad[0] (.input clocked by benchmark1^clock)
-Endpoint  : out:benchmark1^tempOut~2.outpad[0] (.output clocked by benchmark1^clock)
-Path Type : setup
-
-Point                                                               Incr      Path
-----------------------------------------------------------------------------------
-clock benchmark1^clock (rise edge)                                 0.000     0.000
-clock source latency                                               0.000     0.000
-input external delay                                               0.000     0.000
-benchmark1^b_in~0.inpad[0] (.input)                                0.000     0.000
-benchmark1^tempOut~2.in[0] (.names)                                0.295     0.295
-benchmark1^tempOut~2.out[0] (.names)                               0.225     0.520
-out:benchmark1^tempOut~2.outpad[0] (.output)                       0.170     0.690
-data arrival time                                                            0.690
-
-clock benchmark1^clock (rise edge)                                 0.000     0.000
-clock source latency                                               0.000     0.000
-clock uncertainty                                                  0.000     0.000
-output external delay                                              0.000     0.000
-data required time                                                           0.000
-----------------------------------------------------------------------------------
-data required time                                                           0.000
-data arrival time                                                           -0.690
-----------------------------------------------------------------------------------
-slack (VIOLATED)                                                            -0.690
-
-
-#Path 4
-Startpoint: benchmark1^a_in~1.inpad[0] (.input clocked by benchmark1^clock)
-Endpoint  : out:benchmark1^tempOut~1.outpad[0] (.output clocked by benchmark1^clock)
-Path Type : setup
-
-Point                                                               Incr      Path
-----------------------------------------------------------------------------------
-clock benchmark1^clock (rise edge)                                 0.000     0.000
-clock source latency                                               0.000     0.000
-input external delay                                               0.000     0.000
-benchmark1^a_in~1.inpad[0] (.input)                                0.000     0.000
-benchmark1^tempOut~1.in[0] (.names)                                0.295     0.295
-benchmark1^tempOut~1.out[0] (.names)                               0.225     0.520
-out:benchmark1^tempOut~1.outpad[0] (.output)                       0.170     0.690
-data arrival time                                                            0.690
-
-clock benchmark1^clock (rise edge)                                 0.000     0.000
-clock source latency                                               0.000     0.000
-clock uncertainty                                                  0.000     0.000
-output external delay                                              0.000     0.000
-data required time                                                           0.000
-----------------------------------------------------------------------------------
-data required time                                                           0.000
-data arrival time                                                           -0.690
-----------------------------------------------------------------------------------
-slack (VIOLATED)                                                            -0.690
-
-
-#Path 5
-Startpoint: benchmark1^out_FF.Q[0] (.latch clocked by benchmark1^clock)
-Endpoint  : out:benchmark1^out.outpad[0] (.output clocked by benchmark1^clock)
+Startpoint: and_latch^out_FF.Q[0] (.latch clocked by and_latch^clock)
+Endpoint  : out:and_latch^out.outpad[0] (.output clocked by and_latch^clock)
 Path Type : setup
 
 Point                                                             Incr      Path
 --------------------------------------------------------------------------------
-clock benchmark1^clock (rise edge)                               0.000     0.000
+clock and_latch^clock (rise edge)                                0.000     0.000
 clock source latency                                             0.000     0.000
-benchmark1^clock.inpad[0] (.input)                               0.000     0.000
-benchmark1^out_FF.clk[0] (.latch)                                0.095     0.095
-benchmark1^out_FF.Q[0] (.latch) [clock-to-output]                0.143     0.238
-out:benchmark1^out.outpad[0] (.output)                           0.170     0.407
-data arrival time                                                          0.407
+and_latch^clock.inpad[0] (.input)                                0.000     0.000
+and_latch^out_FF.clk[0] (.latch)                                 0.095     0.095
+and_latch^out_FF.Q[0] (.latch) [clock-to-output]                 0.143     0.238
+out:and_latch^out.outpad[0] (.output)                            0.295     0.532
+data arrival time                                                          0.532
 
-clock benchmark1^clock (rise edge)                               0.000     0.000
+clock and_latch^clock (rise edge)                                0.000     0.000
 clock source latency                                             0.000     0.000
 clock uncertainty                                                0.000     0.000
 output external delay                                            0.000     0.000
 data required time                                                         0.000
 --------------------------------------------------------------------------------
 data required time                                                         0.000
-data arrival time                                                         -0.407
+data arrival time                                                         -0.532
 --------------------------------------------------------------------------------
-slack (VIOLATED)                                                          -0.407
+slack (VIOLATED)                                                          -0.532
 
 
 #End of timing report

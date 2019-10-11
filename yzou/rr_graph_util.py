@@ -3,18 +3,10 @@ from sys import exit
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
-from pyqubo import Binary, Spin, Array, Placeholder, Constraint
+from pyqubo import Binary, Spin, Array, Placeholder, Constraint, solve_qubo
 from pprint import pprint
 import re
 import neal# D-Wave simulated annealing sampler
-
-def index_convert(nrows, ncols, row, col):
-    return (row * ncols + col)
-
-def index_deconvert(nrows, ncols, idx):
-    row = int(idx / ncols)
-    col = int(idx % ncols)
-    return (row, col)
 
 def explicit_constraint_convert(row, col, X):
     return Constraint(X[row, col] ** 2, label = 'explicit: X[%d, %d]' % (row, col))
@@ -52,18 +44,32 @@ def GlobalRoutingGraph(deviceXML, rrgraphXML):
     # create metric distance graph
     MDG = nx.DiGraph()
     for (src_x, src_y) in tqdm([(x0, y0) for x0 in range(W) for y0 in range(H)], desc = 'Creating Metric Distance Graph'):
-        if (src_x, src_y) != (0, 0) and (src_x, src_y) != (0, H-1) and (src_x, src_y) != (W-1, 0) and (src_x, src_y) != (W-1, H-1):
+        if (src_x, src_y) != (0, 0) and (src_x, src_y) != (0, H-1) and (src_x, src_y) != (W-1, 0) and (src_x, src_y) != (W-1, H-1):# corners are empty
             for (dst_x, dst_y) in [(x1, y1) for x1 in range(W) for y1 in range(H)]:
-                if (dst_x, dst_y) != (0, 0) and (dst_x, dst_y) != (0, H-1) and (dst_x, dst_y) != (W-1, 0) and (dst_x, dst_y) != (W-1, H-1):
+                if (dst_x, dst_y) != (0, 0) and (dst_x, dst_y) != (0, H-1) and (dst_x, dst_y) != (W-1, 0) and (dst_x, dst_y) != (W-1, H-1):# corners are empty
                     if (src_x, src_y) == (dst_x, dst_y):
-                        src_vertex = 'BLK_%s_%s' % (src_x, src_y)
-                        dst_vertex = 'BLK_%s_%s' % (dst_x, dst_y)
+                        src_vertex = 'BLK_%d_%d' % (src_x, src_y)
+                        dst_vertex = 'BLK_%d_%d' % (dst_x, dst_y)
                         MDG.add_edge(src_vertex, dst_vertex, weight = 0)
                     else:
-                        src_vertex = 'BLK_%s_%s' % (src_x, src_y)
-                        dst_vertex = 'BLK_%s_%s' % (dst_x, dst_y)
+                        src_vertex = 'BLK_%d_%d' % (src_x, src_y)
+                        dst_vertex = 'BLK_%d_%d' % (dst_x, dst_y)
                         MDG.add_edge(src_vertex, dst_vertex, weight = nx.shortest_path_length(RRG, source = src_vertex, target = dst_vertex) - 2)
-    return MDG
+
+    # Construct two lists, one for IO, one for CLB
+    # Each list contains all physical locations compatible for the list type
+    # e.g. IO_sites list all physical locations which IO blocks in netlist can sit
+    # currently assuming only each physical location can be only compatible with one kind of block in netlist
+    IO_sites = list()
+    CLB_sites = list()
+    for (idx, node) in enumerate(MDG.nodes()):
+        x, y = int(re.findall(r'\d+', node)[0]), int(re.findall(r'\d+', node)[1])
+        if x == 0 or x == W-1 or y == 0 or y == H-1:# an IO site because it's at perimeter
+            IO_sites.append(idx)
+        else:# an CLB site
+            CLB_sites.append(idx)
+
+    return MDG, IO_sites, CLB_sites
 
 # Input: a packed netlist XML
 # Output: a netlist graph
@@ -76,15 +82,27 @@ def NetListGraph(netlistXML):
     NG.add_edge('n9', 'out:and_latch^out')
     NG.add_edge('and_latch^a_in', 'n9')
     NG.add_edge('and_latch^b_in', 'n9')
-    return NG
+
+    # Construct two lists, one for IO, one for CLB
+    # Each list contains all blocks compatible for the physical location type
+    # e.g. IO_blocks list all blocks which can sit in IO sites
+    IO_blocks = list()
+    CLB_blocks = list()
+    IO_blocks.append(1)
+    IO_blocks.append(2)
+    IO_blocks.append(3)
+    CLB_blocks.append(0)
+
+    return NG, IO_blocks, CLB_blocks
 
 # NM: netlist matrix
 # MDM: metric distance matrix
-def GraphEmbedding(NM, MDM):
+def GraphEmbedding(NM, MDM, IO_blocks, CLB_blocks, IO_sites, CLB_sites):
     N, M = NM.shape[0], MDM.shape[0]
     
     # create an 2d embedding array
     X = Array.create('X', shape = (N, M), vartype = 'BINARY')
+    
     # generate quadratic objective function
     obj = 0
     for i in tqdm(range(N), desc = 'Generating quadratic objective'):
@@ -92,6 +110,7 @@ def GraphEmbedding(NM, MDM):
             obj += NM[i, j] * X[i, :].dot(MDM).dot(X[j, :].T)
     
     constr = 0
+    
     # generate implicit constraints
     P_i = Placeholder('P_i')# strength of implicit constraint
     for i in tqdm(range(N), desc = 'Generating implicit constraints'): # the sum of each row should equal 1, which means every element is mapped
@@ -108,48 +127,33 @@ def GraphEmbedding(NM, MDM):
             C += X[i, j]
             label += 'X[%d, %d] ' % (i, j)
         constr += P_i * Constraint((C - 1) ** 2, label = label)
-    # generate explicit constraints, this should be given the highest priority
+    
+    # generate explicit constraints
     P_e = Placeholder('P_e')# strength of explicit constraint
-    constr += P_e * explicit_constraint_convert(0, 0, X)
-    constr += P_e * explicit_constraint_convert(0, 1, X)
-    constr += P_e * explicit_constraint_convert(0, 2, X)
-    constr += P_e * explicit_constraint_convert(0, 6, X)
-    constr += P_e * explicit_constraint_convert(0, 10, X)
-    constr += P_e * explicit_constraint_convert(0, 11, X)
-    constr += P_e * explicit_constraint_convert(1, 3, X)
-    constr += P_e * explicit_constraint_convert(1, 4, X)
-    constr += P_e * explicit_constraint_convert(1, 7, X)
-    constr += P_e * explicit_constraint_convert(1, 8, X)
-    constr += P_e * explicit_constraint_convert(2, 3, X)
-    constr += P_e * explicit_constraint_convert(2, 4, X)
-    constr += P_e * explicit_constraint_convert(2, 7, X)
-    constr += P_e * explicit_constraint_convert(2, 8, X)
-    constr += P_e * explicit_constraint_convert(3, 3, X)
-    constr += P_e * explicit_constraint_convert(3, 4, X)
-    constr += P_e * explicit_constraint_convert(3, 7, X)
-    constr += P_e * explicit_constraint_convert(3, 8, X)
+    for (i, j) in tqdm([(io_block, clb_site) for io_block in IO_blocks for clb_site in CLB_sites], desc = 'Generating explicit constraints'):
+        constr += P_e * explicit_constraint_convert(i, j, X)
+    for (i, j) in tqdm([(clb_block, io_site) for clb_block in CLB_blocks for io_site in IO_sites], desc = 'Generating explicit constraints'):
+        constr += P_e * explicit_constraint_convert(i, j, X)
     
     # calculate QUBO parameters
     feed_dict = {'P_i': 2000000, 'P_e': 2000000}
     H = obj + constr
     model = H.compile()
-    weight, _ = model.to_qubo(feed_dict = feed_dict)
+    qubo, _ = model.to_qubo(feed_dict = feed_dict)
 
     # solve QUBO
-    sampler = neal.SimulatedAnnealingSampler()
-    response = sampler.sample_qubo(weight, num_reads = 100, num_sweeps = 2000)
+    raw_solution = solve_qubo(qubo, num_reads = 500, sweeps = 1000)
 
     # interpret results
     sol = np.zeros([N, M])
-    for (key, val) in tqdm(response.first.sample.items(), desc = 'Interpreting result'):
-        row = int(re.findall(r'\d+', key)[0])
-        col = int(re.findall(r'\d+', key)[1])
+    for (key, val) in tqdm(raw_solution.items(), desc = 'Interpreting result'):
+        row, col = int(re.findall(r'\d+', key)[0]), int(re.findall(r'\d+', key)[1])
         sol[row, col] = val
     print('Embedding Matrix:')
     pprint(sol)
 
     # decode solution and check broken constraints
-    _, broken, energy = model.decode_solution(response.first.sample, vartype = 'BINARY', feed_dict = feed_dict)
+    _, broken, energy = model.decode_solution(raw_solution, vartype = 'BINARY', feed_dict = feed_dict)
     print('Energy: ', energy)
     print('Broken rules:')
     pprint(broken)
@@ -157,20 +161,26 @@ def GraphEmbedding(NM, MDM):
 def main():
     deviceXML = '../temp/fixed_k4_N1_90nm_yzou.xml'
     rrgraphXML = '../temp/rr_graph.xml'
-    MDG = GlobalRoutingGraph(deviceXML = deviceXML, rrgraphXML = rrgraphXML)
-    NG = NetListGraph('../temp/and_latch.net')
+    netlistXML = '../temp/and_latch.net'
+    
+    MDG, IO_sites, CLB_sites = GlobalRoutingGraph(deviceXML = deviceXML, rrgraphXML = rrgraphXML)
+    NG, IO_blocks, CLB_blocks = NetListGraph(netlistXML)
+
     # adjacency matrix of metric distance graph
     MDM = nx.adjacency_matrix(MDG, nodelist = MDG.nodes()).todense()
     pprint(MDG.nodes())
     pprint(MDM)
+    
     # adjacency matrix of netlist graph
     NM = nx.adjacency_matrix(NG, nodelist = NG.nodes()).todense()
     pprint(NG.nodes())
     pprint(NM)
+
     # expand netlist matrix to the size of metric distance graph
     expanded_NM = np.pad(NM, ((0, MDM.shape[0] - NM.shape[0]),), 'constant', constant_values = 0)
     pprint(expanded_NM)
-    GraphEmbedding(NM = expanded_NM, MDM = MDM)
+    
+    GraphEmbedding(NM = expanded_NM, MDM = MDM,  IO_blocks = IO_blocks, CLB_blocks = CLB_blocks, IO_sites = IO_sites, CLB_sites = CLB_sites)
 
 if __name__ == '__main__':
     main()

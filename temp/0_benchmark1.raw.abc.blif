@@ -1,4 +1,4 @@
-# Benchmark "benchmark1" written by ABC on Thu Oct 10 16:35:14 2019
+# Benchmark "benchmark1" written by ABC on Thu Oct 10 21:15:45 2019
 .model benchmark1
 .inputs benchmark1^clock benchmark1^a_in~0 benchmark1^a_in~1 \
  benchmark1^a_in~2 benchmark1^a_in~3 benchmark1^a_in~4 benchmark1^a_in~5 \

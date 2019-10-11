@@ -1,4 +1,4 @@
-# Benchmark "and_latch_yzou" written by ABC on Tue Oct  8 18:55:41 2019
+# Benchmark "and_latch_yzou" written by ABC on Thu Oct 10 23:26:36 2019
 .model and_latch_yzou
 .inputs and_latch_yzou^clock and_latch_yzou^a_in~0 and_latch_yzou^a_in~1 \
  and_latch_yzou^a_in~2 and_latch_yzou^b_in~0 and_latch_yzou^b_in~1 \
