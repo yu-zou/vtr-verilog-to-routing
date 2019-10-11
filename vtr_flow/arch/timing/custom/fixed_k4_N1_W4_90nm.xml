@@ -46,7 +46,7 @@
   <!-- Physical descriptions begin -->
   <layout>
 	  <!--<auto_layout aspect_ratio="1.000000">-->
-		  <fixed_layout name="fixed_k4_N1_90nm_yzou" width="4" height="4">
+		  <fixed_layout name="fixed_k4_N1_W4_90nm" width="4" height="4">
 			  <!--Perimeter of 'io' blocks with 'EMPTY' blocks at corners-->
 			  <perimeter type="io" priority="100"/>
 			  <corners type="EMPTY" priority="101"/>

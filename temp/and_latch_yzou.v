@@ -1,4 +1,4 @@
-module and_latch(
+module and_latch_yzou(
     clock,
 	a_in,
 	b_in,
@@ -7,10 +7,10 @@ module and_latch(
 
     // SIGNAL DECLARATIONS
     input	clock;
-    input	a_in;
-    input	b_in;
+    input[2:0]	a_in;
+    input[2:0]	b_in;
 
-    output	out;
+    output[2:0]	out;
 
     // ASSIGN STATEMENTS
     always @(posedge clock)

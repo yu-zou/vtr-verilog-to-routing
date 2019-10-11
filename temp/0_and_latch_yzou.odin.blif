@@ -1,0 +1,60 @@
+
+.model and_latch_yzou 
+
+.inputs and_latch_yzou^clock and_latch_yzou^a_in~0 and_latch_yzou^a_in~1 and_latch_yzou^a_in~2 and_latch_yzou^b_in~0 \
+ and_latch_yzou^b_in~1 and_latch_yzou^b_in~2 
+
+.outputs and_latch_yzou^out~0 and_latch_yzou^out~1 and_latch_yzou^out~2 
+
+
+.names gnd 
+
+.names unconn 
+
+.names vcc 
+1 
+
+
+.latch and_latch_yzou^bAND~0^lAND~1 and_latch_yzou^out~0_FF re and_latch_yzou^clock 0 
+
+
+.latch and_latch_yzou^bAND~0^lAND~2 and_latch_yzou^out~1_FF re and_latch_yzou^clock 0 
+
+
+.latch and_latch_yzou^bAND~0^lAND~3 and_latch_yzou^out~2_FF re and_latch_yzou^clock 0 
+
+
+.names and_latch_yzou^a_in~0 and_latch_yzou^b_in~0 and_latch_yzou^bAND~0^lAND~1 
+11 1 
+
+
+.names and_latch_yzou^a_in~1 and_latch_yzou^b_in~1 and_latch_yzou^bAND~0^lAND~2 
+11 1 
+
+
+.names and_latch_yzou^a_in~2 and_latch_yzou^b_in~2 and_latch_yzou^bAND~0^lAND~3 
+11 1 
+
+
+.names and_latch_yzou^out~0_FF and_latch_yzou^out~0 
+1 1 
+
+
+.names and_latch_yzou^out~1_FF and_latch_yzou^out~1 
+1 1 
+
+
+.names and_latch_yzou^out~2_FF and_latch_yzou^out~2 
+1 1 
+
+
+.subckt CLOCK_GATING I=and_latch_yzou^clock
+
+.end 
+
+
+.model CLOCK_GATING
+.inputs I
+.blackbox
+.end
+

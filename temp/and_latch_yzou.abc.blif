@@ -1,0 +1,57 @@
+# Benchmark "and_latch_yzou" written by ABC on Tue Oct 8 18:55:41 2019 
+
+
+.model and_latch_yzou 
+
+
+.inputs and_latch_yzou^clock and_latch_yzou^a_in~0 and_latch_yzou^a_in~1 and_latch_yzou^a_in~2 and_latch_yzou^b_in~0 \
+ and_latch_yzou^b_in~1 and_latch_yzou^b_in~2 
+
+
+.outputs and_latch_yzou^out~0 and_latch_yzou^out~1 and_latch_yzou^out~2 
+
+
+
+.latch n19 and_latch_yzou^out~0_FF re and_latch_yzou^clock 0 
+
+
+.latch n24 and_latch_yzou^out~1_FF re and_latch_yzou^clock 0 
+
+
+.latch n29 and_latch_yzou^out~2_FF re and_latch_yzou^clock 0 
+
+
+
+
+
+
+.names and_latch_yzou^a_in~0 and_latch_yzou^b_in~0 n19 
+11 1 
+
+
+.names and_latch_yzou^a_in~1 and_latch_yzou^b_in~1 n24 
+11 1 
+
+
+.names and_latch_yzou^a_in~2 and_latch_yzou^b_in~2 n29 
+11 1 
+
+
+.names and_latch_yzou^out~0_FF and_latch_yzou^out~0 
+1 1 
+
+
+.names and_latch_yzou^out~1_FF and_latch_yzou^out~1 
+1 1 
+
+
+.names and_latch_yzou^out~2_FF and_latch_yzou^out~2 
+1 1 
+
+
+
+.end 
+
+
+
+
