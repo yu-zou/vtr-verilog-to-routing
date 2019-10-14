@@ -12,7 +12,7 @@ module benchmark1(
 
     output		out;
 
-	output[5:0] tempOut;
+	wire[5:0] tempOut;
 	assign tempOut[0] = a_in[0] ^ b_in[2];
 	assign tempOut[1] = a_in[1] ^ b_in[2];
 	assign tempOut[2] = a_in[2] | b_in[1] & b_in[0];

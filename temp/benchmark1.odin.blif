@@ -1,6 +1,6 @@
 .model benchmark1
 .inputs benchmark1^clock benchmark1^a_in~0 benchmark1^a_in~1 benchmark1^a_in~2 benchmark1^a_in~3 benchmark1^a_in~4 benchmark1^a_in~5 benchmark1^b_in~0 benchmark1^b_in~1 benchmark1^b_in~2 benchmark1^b_in~3 benchmark1^b_in~4 benchmark1^b_in~5
-.outputs benchmark1^out benchmark1^tempOut~0 benchmark1^tempOut~1 benchmark1^tempOut~2
+.outputs benchmark1^out
 
 .names gnd
 .names unconn
@@ -41,24 +41,6 @@
 11 1
 
 .names benchmark1^out_FF benchmark1^out
-1 1
-
-.names benchmark1^bXOR~0^lXOR~15 benchmark1^tempOut~0
-1 1
-
-.names benchmark1^bXOR~2^lXOR~16 benchmark1^tempOut~1
-1 1
-
-.names benchmark1^bOR~5^lOR~17 benchmark1^tempOut~2
-1 1
-
-.names unconn benchmark1^tempOut~3
-1 1
-
-.names unconn benchmark1^tempOut~4
-1 1
-
-.names unconn benchmark1^tempOut~5
 1 1
 
 .end

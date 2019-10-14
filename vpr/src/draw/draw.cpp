@@ -1000,7 +1000,10 @@ static void drawnets(ezgl::renderer& g) {
     /* Draw the net as a star from the source to each sink. Draw from centers of *
      * blocks (or sub blocks in the case of IOs).                                */
 
-    for (auto net_id : cluster_ctx.clb_nlist.nets()) {
+	/* Added by Yu Zou - 2019.10.13 */
+	//std::cout << "Starting exporting edges..." << std::endl;
+    
+	for (auto net_id : cluster_ctx.clb_nlist.nets()) {
         if (cluster_ctx.clb_nlist.net_is_ignored(net_id))
             continue; /* Don't draw */
 
@@ -1009,6 +1012,12 @@ static void drawnets(ezgl::renderer& g) {
         ezgl::point2d driver_center = draw_coords->get_absolute_clb_bbox(b1, cluster_ctx.clb_nlist.block_type(b1)).center();
         for (auto pin_id : cluster_ctx.clb_nlist.net_sinks(net_id)) {
             b2 = cluster_ctx.clb_nlist.pin_block(pin_id);
+
+			/* Added by Yu Zou - 2019.10.13 */
+			//std::cout << "Edge: " << cluster_ctx.clb_nlist.block_name(b1).c_str() << "->" << cluster_ctx.clb_nlist.block_name(b2).c_str() << std::endl;
+			//std::cout << "src type: " << cluster_ctx.clb_nlist.block_type(b1)->name << std::endl;
+			//std::cout << "dst type: " << cluster_ctx.clb_nlist.block_type(b2)->name << std::endl;
+
             ezgl::point2d sink_center = draw_coords->get_absolute_clb_bbox(b2, cluster_ctx.clb_nlist.block_type(b2)).center();
             g.draw_line(driver_center, sink_center);
             /* Uncomment to draw a chain instead of a star. */

@@ -65,7 +65,7 @@ ranksep=.25;
 	30 -> 31;
 	32 [label="VAR_DECLARE_LIST"];
 	15 -> 32;
-	33 [label="VAR_DECLARE:  OUTPUT PORT"];
+	33 [label="VAR_DECLARE:  WIRE"];
 	32 -> 33;
 	34 [label="IDENTIFIERS: tempOut"];
 	33 -> 34;

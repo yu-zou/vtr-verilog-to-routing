@@ -1,36 +1,28 @@
-# Benchmark "benchmark1" written by ABC on Thu Oct 10 21:15:45 2019 
+# Benchmark "benchmark1" written by ABC on Sun Oct 13 20:52:53 2019 
 
 .model benchmark1 
 
 .inputs benchmark1^clock benchmark1^a_in~0 benchmark1^a_in~1 benchmark1^a_in~2 benchmark1^a_in~3 benchmark1^a_in~4 \
  benchmark1^a_in~5 benchmark1^b_in~0 benchmark1^b_in~1 benchmark1^b_in~2 benchmark1^b_in~3 benchmark1^b_in~4 benchmark1^b_in~5 
 
-.outputs benchmark1^out benchmark1^tempOut~0 benchmark1^tempOut~1 benchmark1^tempOut~2 
+.outputs benchmark1^out 
 
 
-.latch n32 benchmark1^out_FF re benchmark1^clock 0 
+.latch n29 benchmark1^out_FF re benchmark1^clock 0 
 
 
 
 
 
-.names benchmark1^a_in~0 benchmark1^b_in~2 benchmark1^tempOut~0 
-01 1 
-10 1 
+.names n21 benchmark1^a_in~0 benchmark1^a_in~1 n29 
+000 1 
+011 1 
+101 1 
+110 1 
 
-.names benchmark1^a_in~1 benchmark1^b_in~2 benchmark1^tempOut~1 
-01 1 
-10 1 
-
-.names benchmark1^b_in~0 benchmark1^b_in~1 benchmark1^a_in~2 benchmark1^tempOut~2 
---1 1 
-11- 1 
-
-.names benchmark1^tempOut~2 benchmark1^a_in~0 benchmark1^a_in~1 n32 
-001 1 
-010 1 
-100 1 
-111 1 
+.names benchmark1^b_in~1 benchmark1^b_in~0 benchmark1^a_in~2 n21 
+-00 1 
+0-0 1 
 
 .names benchmark1^out_FF benchmark1^out 
 1 1 

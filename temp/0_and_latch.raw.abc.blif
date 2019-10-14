@@ -1,4 +1,4 @@
-# Benchmark "and_latch" written by ABC on Thu Oct 10 23:27:05 2019
+# Benchmark "and_latch" written by ABC on Fri Oct 11 14:03:06 2019
 .model and_latch
 .inputs and_latch^clock and_latch^a_in and_latch^b_in
 .outputs and_latch^out

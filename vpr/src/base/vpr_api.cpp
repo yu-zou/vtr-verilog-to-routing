@@ -561,6 +561,27 @@ void vpr_load_packing(t_vpr_setup& vpr_setup, const t_arch& arch) {
         std::ofstream ofs("packing_pin_util.rpt");
         report_packing_pin_usage(ofs, g_vpr_ctx);
     }
+
+	/* Modified by Yu Zou */
+	std::cout << "Exporting edges" << std::endl;
+	std::ofstream file;
+	file.open("netlist_edges");
+	ClusterBlockId b1, b2;
+	for (auto net_id: cluster_ctx.clb_nlist.nets()) {
+		if (cluster_ctx.clb_nlist.net_is_ignored(net_id))
+			continue;
+		b1 = cluster_ctx.clb_nlist.net_driver_block(net_id);
+		for (auto pin_id: cluster_ctx.clb_nlist.net_sinks(net_id)) {
+			b2 = cluster_ctx.clb_nlist.pin_block(pin_id);
+			auto src_blk = cluster_ctx.clb_nlist.block_name(b1).c_str();
+			auto dst_blk = cluster_ctx.clb_nlist.block_name(b2).c_str();
+			auto src_blk_type = cluster_ctx.clb_nlist.block_type(b1)->name;
+			auto dst_blk_type = cluster_ctx.clb_nlist.block_type(b2)->name;
+			file << src_blk_type << " " << src_blk << " " << dst_blk_type << " " << dst_blk << "\n";
+		}
+	}
+	file.close();
+	/* Modification ends */
 }
 
 bool vpr_place_flow(t_vpr_setup& vpr_setup, const t_arch& arch) {

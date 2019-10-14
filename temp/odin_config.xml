@@ -1,12 +1,12 @@
 <config>
 	<verilog_files>
 		<!-- Way of specifying multiple files in a project -->
-		<verilog_file>and_latch.v</verilog_file>
+		<verilog_file>benchmark1.v</verilog_file>
 	</verilog_files>
 	<output>
 		<!-- These are the output flags for the project -->
 		<output_type>blif</output_type>
-		<output_path_and_name>and_latch.odin.blif</output_path_and_name>
+		<output_path_and_name>benchmark1.odin.blif</output_path_and_name>
 		<target>
 			<!-- This is the target device the output is being built for -->
 			<arch_file>fixed_k4_N1_W4_90nm.xml</arch_file>
