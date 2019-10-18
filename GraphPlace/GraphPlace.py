@@ -9,6 +9,7 @@ import numpy as np
 from scipy.sparse import coo_matrix
 import re
 import os
+import logging
 
 def main():
     parser = argparse.ArgumentParser(description = 'GraphPlace')
@@ -18,6 +19,7 @@ def main():
     parser.add_argument('mdg_checkpoint', type = str, help = 'MDG checkpoint file path, will be created if not exists')
     parser.add_argument('placement_file', type = str, help = 'File path for the result placement')
     parser.add_argument('vpr_placement', type = str, help = 'VPR generate baseline placement')
+    parser.add_argument('--log', type = str, default = 'WARNING', help = 'log level setting, DEBUG, INFO, WARNING, ERROR, CRITICAL')
     
     args = parser.parse_args()
 
@@ -30,6 +32,12 @@ def main():
     mdg_checkpoint = args.mdg_checkpoint
     placement_file = args.placement_file
     vpr_placement = args.vpr_placement
+
+    # set log level
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log.upper())
+    logging.basicConfig(level = numeric_level)
 
     RRGraph = rr_graph_util.RRGraph(deviceXML, rrgraphXML, mdg_checkpoint)
     # print('RRGraph:')
@@ -46,10 +54,12 @@ def main():
     # pprint(expanded_NM)
 
     coo_qubo, offset = graph_embedding.QUBOConstruct(expanded_NM, RRGraph.MDM, 200, 200, NGraph.IO_blocks, NGraph.CLB_blocks, RRGraph.IO_sites, RRGraph.CLB_sites)
-    # pprint(coo_qubo)
+    # pprint(coo_qubo.todense())
     print('Offset:', offset)
 
     csr_sol = graph_embedding.QUBOSolve_SA(coo_qubo, offset, RRGraph.MDM.shape[0])
+    # print('Solution:')
+    # pprint(csr_sol.todense())
     # print(csr_sol)
 
     print('# rules violated: ', graph_embedding.QUBOSolValid(csr_sol, NGraph.IO_blocks, NGraph.CLB_blocks, RRGraph.IO_sites, RRGraph.CLB_sites))

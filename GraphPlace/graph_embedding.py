@@ -13,6 +13,7 @@ from dwave.system.composites import EmbeddingComposite
 import neal
 import dimod
 import time
+import logging
 
 @jit(nopython = True, cache = True, parallel = True)
 def QUBOConstruct_kernel(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB_sites):
@@ -187,9 +188,10 @@ def QUBOVPRSolEval(vpr_placement, netlist_nodes, rrgraph_nodes, N, coo_qubo, off
             empty_cols.append(col)
     for (row, col) in zip(empty_rows, empty_cols):
         lil_sol[row, col] = 1
-    csr_sol = lil_sol.tocsr()
+    # print('Baseline solution:')
+    # pprint(lil_sol.todense())
     # check violations
-    print('Baseline # rules violated: ', QUBOSolValid(csr_sol, IO_blocks, CLB_blocks, IO_sites, CLB_sites))
+    print('Baseline # rules violated: ', QUBOSolValid(lil_sol.tocsr(), IO_blocks, CLB_blocks, IO_sites, CLB_sites))
     # flatten solution to vector
     flat_csr_sol = lil_sol.reshape((1, N**2)).tocsr()
     energy = flat_csr_sol.dot(coo_qubo.tocsr()).dot(flat_csr_sol.T)
