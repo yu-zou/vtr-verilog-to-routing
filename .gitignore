@@ -102,3 +102,6 @@ tags
 #
 .vscode
 .history
+
+# Ignore temporary folder
+/temp/

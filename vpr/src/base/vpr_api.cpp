@@ -565,7 +565,7 @@ void vpr_load_packing(t_vpr_setup& vpr_setup, const t_arch& arch) {
 	/* Modified by Yu Zou */
 	std::cout << "Exporting edges" << std::endl;
 	std::ofstream file;
-	file.open("netlist_edges");
+	file.open("netlist_edges.txt");
 	ClusterBlockId b1, b2;
 	for (auto net_id: cluster_ctx.clb_nlist.nets()) {
 		if (cluster_ctx.clb_nlist.net_is_ignored(net_id))
