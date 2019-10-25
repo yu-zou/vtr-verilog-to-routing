@@ -438,6 +438,10 @@ static void print_place_status(const float t,
                                const float crit_exponent,
                                size_t tot_moves);
 
+/* Added by Yu Zou - 2019.10.24 */
+static void initial_timing_cost_dump(/*const PlaceDelayModel* delay_model*/);
+/* end */
+
 /*****************************************************************************/
 void try_place(const t_placer_opts& placer_opts,
                t_annealing_sched annealing_sched,
@@ -555,6 +559,11 @@ void try_place(const t_placer_opts& placer_opts,
 
         /*now we can properly compute costs  */
         comp_td_costs(place_delay_model.get(), &costs.timing_cost); /*also updates values in point_to_point_delay */
+
+		/* Added by Yu Zou */
+		// dump the criticality after initial timing analysis
+		initial_timing_cost_dump(/*place_delay_model.get()*/);
+		/* end */
 
         outer_crit_iter_count = 1;
 
@@ -2854,7 +2863,8 @@ static void print_clb_placement(const char* fname) {
 
     fprintf(fp, "Block #\tName\t(X, Y, Z).\n");
     for (auto i : cluster_ctx.clb_nlist.blocks()) {
-        fprintf(fp, "#%d\t%s\t(%d, %d, %d).\n", i, cluster_ctx.clb_nlist.block_name(i), place_ctx.block_locs[i].x, place_ctx.block_locs[i].y, place_ctx.block_locs[i].z);
+		// Modified by Yu Zou - 2019.10.22
+        fprintf(fp, "#%d\t%s\t(%d, %d, %d).\n", i, cluster_ctx.clb_nlist.block_name(i), place_ctx.block_locs[i].loc.x, place_ctx.block_locs[i].loc.y, place_ctx.block_locs[i].loc.z);
     }
 
     fclose(fp);
@@ -2938,3 +2948,39 @@ static void print_place_status(const float t,
     VTR_LOG(" %6.3f\n", t / oldt);
     fflush(stdout);
 }
+
+/* Added by Yu Zou - 2019.10.24 */
+static void initial_timing_cost_dump(/*const PlaceDelayModel* delay_model*/) {
+	std::ofstream file;
+	file.open("initial_timing_cost.txt");
+	VTR_LOG("Dumping timing cost\n");
+	auto& cluster_ctx = g_vpr_ctx.clustering();
+
+	for (auto net_id: cluster_ctx.clb_nlist.nets()) {
+		if (cluster_ctx.clb_nlist.net_is_ignored(net_id))
+			continue;
+
+		for (unsigned ipin = 1; ipin < cluster_ctx.clb_nlist.net_pins(net_id).size(); ++ipin) {
+			float conn_timing_cost = get_timing_place_crit(net_id, ipin);
+
+			ClusterPinId source_pin = cluster_ctx.clb_nlist.net_driver(net_id);
+			ClusterPinId sink_pin = cluster_ctx.clb_nlist.net_pin(net_id, ipin);
+
+			ClusterBlockId source_block = cluster_ctx.clb_nlist.pin_block(source_pin);
+			ClusterBlockId sink_block = cluster_ctx.clb_nlist.pin_block(sink_pin);
+
+			const std::string& source_block_name = cluster_ctx.clb_nlist.block_name(source_block);
+			const std::string& sink_block_name = cluster_ctx.clb_nlist.block_name(sink_block);
+
+			char* source_block_type = cluster_ctx.clb_nlist.block_type(source_block)->name;
+			char* sink_block_type = cluster_ctx.clb_nlist.block_type(sink_block)->name;
+
+			file << source_block_type << " " << source_block_name << " " << sink_block_type << " "
+				<< sink_block_name << " " << conn_timing_cost << "\n";
+		}
+	}
+
+	file.close();
+	VTR_LOG("Dumping ends\n");
+}
+/* end */

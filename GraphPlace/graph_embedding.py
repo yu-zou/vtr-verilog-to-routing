@@ -65,7 +65,7 @@ def QUBOSolve_SA(coo_qubo, offset, N):
     
     sampler = neal.SimulatedAnnealingSampler()
     start = time.time()
-    response = sampler.sample_qubo(qubo_dict, num_reads = 100, num_sweeps = 5000).first
+    response = sampler.sample_qubo(qubo_dict, num_reads = 100, num_sweeps = 1000).first
     end = time.time()
 
     # create a solution lil matrix, since most of entries would be zero

@@ -56,8 +56,25 @@ class DeltaDelayModel : public PlaceDelayModel {
     void read(const std::string& /*file*/) override {
         VPR_THROW(VPR_ERROR_ROUTE, "DeltaDelayModel::read unimplemented");
     }
-    void write(const std::string& /*file*/) const override {
-        VPR_THROW(VPR_ERROR_ROUTE, "DeltaDelayModel::write unimplemented");
+    //void write(const std::string& [>file<]) const override {
+        //VPR_THROW(VPR_ERROR_ROUTE, "DeltaDelayModel::write unimplemented");
+    //}
+	/* Added write function */
+    void write(const std::string& filepath) const override {
+		FILE* f = vtr::fopen(filepath.c_str(), "w");
+		fprintf(f, "         ");
+		for (size_t dx = 0; dx < delays_.dim_size(0); ++dx) {
+			fprintf(f, " %9zu", dx);
+		}
+		fprintf(f, "\n");
+		for (size_t dy = 0; dy < delays_.dim_size(1); ++dy) {
+			fprintf(f, "%9zu", dy);
+			for (size_t dx = 0; dx < delays_.dim_size(0); ++dx) {
+				fprintf(f, " %9.2e", delays_[dx][dy]);
+			}
+			fprintf(f, "\n");
+		}
+		vtr::fclose(f);
     }
 
   private:

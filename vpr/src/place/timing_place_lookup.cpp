@@ -373,11 +373,11 @@ static void generic_compute_matrix(
                     //Only set empty target if we don't already have a valid delta delay
                     matrix[delta_x][delta_y].push_back(EMPTY_DELTA);
 #ifdef VERBOSE
-                    VTR_LOG("Computed delay: %12s delta: %d,%d (src: %d,%d sink: %d,%d)\n",
+                    VTR_LOG("Computed delay: %12s delta: %d,%d (src: %d,%d sink: %d,%d), src_type: %6s, sink_type: %6s\n",
                             "EMPTY",
                             delta_x, delta_y,
                             source_x, source_y,
-                            sink_x, sink_y);
+                            sink_x, sink_y, src_type->name, sink_type->name);
 #endif
                 }
             } else {
@@ -386,11 +386,11 @@ static void generic_compute_matrix(
                 float delay = route_connection_delay(route_profiler, source_x, source_y, sink_x, sink_y, router_opts, measure_directconnect);
 
 #ifdef VERBOSE
-                VTR_LOG("Computed delay: %12g delta: %d,%d (src: %d,%d sink: %d,%d)\n",
+                VTR_LOG("Computed delay: %12g delta: %d,%d (src: %d,%d sink: %d,%d), src_type: %6s, sink_type: %6s\n",
                         delay,
                         delta_x, delta_y,
                         source_x, source_y,
-                        sink_x, sink_y);
+                        sink_x, sink_y, src_type->name, sink_type->name);
 #endif
                 if (matrix[delta_x][delta_y].size() == 1 && matrix[delta_x][delta_y][0] == EMPTY_DELTA) {
                     //Overwrite empty delta
