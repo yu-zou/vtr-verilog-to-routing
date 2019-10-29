@@ -2952,7 +2952,7 @@ static void print_place_status(const float t,
 /* Added by Yu Zou - 2019.10.24 */
 static void initial_timing_cost_dump(/*const PlaceDelayModel* delay_model*/) {
 	std::ofstream file;
-	file.open("initial_timing_cost.txt");
+	file.open("initial_criticality.txt");
 	VTR_LOG("Dumping timing cost\n");
 	auto& cluster_ctx = g_vpr_ctx.clustering();
 

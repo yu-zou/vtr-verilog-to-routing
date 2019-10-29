@@ -12,12 +12,12 @@ def saveMDG(MDG, mdg_checkpoint):
     nx.write_edgelist(MDG, mdg_checkpoint, data = True)
 
 def loadMDG(mdg_checkpoint):
-    return nx.read_edgelist(mdg_checkpoint, create_using = nx.DiGraph, edgetype = np.uint8)
+    return nx.read_edgelist(mdg_checkpoint, create_using = nx.Graph, edgetype = float)
 
 class RRGraph:
-    # Input: device layout XML, routing resource graph XML, and MDG_Checkpoint file
-    # Output: a metric distance graph describing connections between physical sites
-    def __init__(self, deviceXML, rrgraphXML, mdg_checkpoint):
+    # Input: device layout XML, placement_delta_delay_lookup, and metric distance graph checkpoint file
+    # Output: a metric distance graph describing shortest delay between each pair of physical sites
+    def __init__(self, deviceXML, placement_delay_lookup_file, mdg_checkpoint):
         # parse dimensions of device layout
         # current implementation assumes square layout (W = H)
         # which is the common case in current commercial FPGA devices
@@ -34,46 +34,33 @@ class RRGraph:
             exit(0)
         
         if (os.path.exists(mdg_checkpoint)):
-            print('Found an existing MDG checkpoint, loading it', flush=True)
+            print('Found an existing MDG checkpoint, loading it', flush = True)
             # if MDG is already generated before, it's unnecessary to generate that
             # directly load it
             MDG = loadMDG(mdg_checkpoint)
         else:# generate a new MDG and store it to mdg_file
-            print('Did not find an existing MDG checkpoint, generating it', flush=True)
-            
-            # create a routing resource graph
-            RRG = nx.DiGraph()
-            root = ET.parse(rrgraphXML).getroot()
-            rr_nodes, rr_edges = root[5], root[6]
-            for rr_edge in tqdm(rr_edges, desc = 'Creating Routing Resource Graph'):
-                src_id, dst_id = rr_edge.attrib['src_node'], rr_edge.attrib['sink_node']
-                src_node, dst_node = rr_nodes[int(src_id)], rr_nodes[int(dst_id)]
-                if src_node.attrib['type'] != 'SOURCE' and src_node.attrib['type'] != 'SINK' and dst_node.attrib['type'] != 'SOURCE' and dst_node.attrib['type'] != 'SINK':
-                    if src_node.attrib['type'] == 'OPIN' or src_node.attrib['type'] == 'IPIN':
-                        src_vertex = 'BLK_%s_%s' % (src_node[0].attrib['xlow'], src_node[0].attrib['ylow'])
-                    elif src_node.attrib['type'] == 'CHANX' or src_node.attrib['type'] == 'CHANY':
-                        src_vertex = '%s_%s_%s_%s' % (src_node.attrib['type'], src_node[0].attrib['xlow'], src_node[0].attrib['ylow'], src_node[0].attrib['ptc'])
-                    
-                    if dst_node.attrib['type'] == 'OPIN' or dst_node.attrib['type'] == 'IPIN':
-                        dst_vertex = 'BLK_%s_%s' % (dst_node[0].attrib['xlow'], dst_node[0].attrib['ylow'])
-                    elif dst_node.attrib['type'] == 'CHANX' or dst_node.attrib['type'] == 'CHANY':
-                        dst_vertex = '%s_%s_%s_%s' % (dst_node.attrib['type'], dst_node[0].attrib['xlow'], dst_node[0].attrib['ylow'], dst_node[0].attrib['ptc'])
-                    
-                    RRG.add_edge(src_vertex, dst_vertex)
-            
+            print('Did not find an existing MDG checkpoint, generating it', flush = True)
+
+            # generate a delta delay lookup dictionary
+            delta_delay_lookup_dict = dict()
+            with open(placement_delay_lookup_file, 'r') as f:
+                next(f)
+                for line in f:
+                    tokens = line.split()
+                    delta_y = int(tokens[0])
+                    for delta_x in range(len(tokens)-1):
+                        delta_delay_lookup_dict[(delta_x, delta_y)] = float(tokens[delta_x+1]) * 1e9
+
             # create metric distance graph
-            MDG = nx.DiGraph()
-            for (src_x, src_y) in tqdm([(x0, y0) for x0 in range(W) for y0 in range(H)], desc='Creating Metric Distance Graph'):
-                if (src_x, src_y) != (0, H-1) and (src_x, src_y) != (0, 0) and (src_x, src_y) != (W-1, H-1) and (src_x, src_y) != (W-1, 0):
-                    src_vertex = 'BLK_%d_%d' % (src_x, src_y)
-                    shortest_lengths = nx.single_source_shortest_path_length(RRG, src_vertex)
-                    for (dst_x, dst_y) in [(x1, y1) for x1 in range(W) for y1 in range(H)]:
-                        if (dst_x, dst_y) != (0, H-1) and (dst_x, dst_y) != (0, 0) and (dst_x, dst_y) != (W-1, H-1) and (dst_x, dst_y) != (W-1, 0):
-                            dst_vertex = 'BLK_%d_%d' % (dst_x, dst_y)
-                            if src_vertex == dst_vertex:
-                                MDG.add_edge(src_vertex, dst_vertex, weight=np.uint8(0))
-                            else:
-                                MDG.add_edge(src_vertex, dst_vertex, weight=np.uint8(shortest_lengths[dst_vertex]-2))
+            MDG = nx.Graph()
+            for (source_x, source_y) in [(x, y) for x in range(W) for y in range(H)]:
+                if (source_x, source_y) not in [(0, 0), (0, H-1), (W-1, 0), (W-1, H-1)]:
+                    for (sink_x, sink_y) in [(x, y) for x in range(W) for y in range(H)]:
+                        if (sink_x, sink_y) not in [(0, 0), (0, H-1), (W-1, 0), (W-1, H-1)]:
+                            delta_x, delta_y = abs(source_x - sink_x), abs(source_y - sink_y)
+                            delay = delta_delay_lookup_dict[(delta_x, delta_y)]
+                            source_vertex, sink_vertex = 'BLK_%d_%d' % (source_x, source_y), 'BLK_%d_%d' % (sink_x, sink_y)
+                            MDG.add_edge(source_vertex, sink_vertex, weight = delay)
 
             # Save MDG checkpoint
             saveMDG(MDG, mdg_checkpoint)
@@ -84,7 +71,6 @@ class RRGraph:
         # currently assuming each physical location can be only compatible with one kind of block in netlist
         self.IO_sites = List()
         self.CLB_sites = List()
-        # for (idx, node) in enumerate(MDG.nodes()):
         for (idx, node) in enumerate(MDG):
             x, y = int(re.findall(r'\d+', node)[0]), int(re.findall(r'\d+', node)[1])
             if x == 0 or x == W-1 or y == 0 or y == H-1:# an IO site because it's at perimeter
@@ -94,3 +80,5 @@ class RRGraph:
 
         self.nodes = list(MDG)
         self.MDM = nx.adjacency_matrix(MDG).todense()
+        self.W = W
+        self.H = H

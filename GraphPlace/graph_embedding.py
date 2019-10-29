@@ -18,7 +18,7 @@ import logging
 @jit(nopython = True, cache = True, parallel = True)
 def QUBOConstruct_kernel(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB_sites):
     N = MDM.shape[0]
-    qubo, offset = np.zeros((N**2, N**2), dtype = np.int16), 0
+    qubo, offset = np.zeros((N**2, N**2)), 0
     
     # generate quadratic objective
     for i in prange(N):
@@ -30,7 +30,7 @@ def QUBOConstruct_kernel(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB
 
     # generate implicit constraints
     # each row sums up to 1
-    row_constr_mat = np.full((N, N), P_i, dtype = np.int16)
+    row_constr_mat = np.full((N, N), P_i)
     np.fill_diagonal(row_constr_mat, -P_i)
     for i in prange(N):
         qubo[i*N:i*N+N, i*N:i*N+N] += row_constr_mat
@@ -38,9 +38,9 @@ def QUBOConstruct_kernel(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB
     for i in prange(N):
         for j in prange(N):
             if i == j:
-                qubo[i*N:i*N+N, j*N:j*N+N] += -P_i * np.eye(N, dtype = np.int16)
+                qubo[i*N:i*N+N, j*N:j*N+N] += -P_i * np.eye(N)
             else:
-                qubo[i*N:i*N+N, j*N:j*N+N] += P_i * np.eye(N, dtype = np.int16)
+                qubo[i*N:i*N+N, j*N:j*N+N] += P_i * np.eye(N)
     offset += P_i * 2 * N
 
     # generate explicit constraints
@@ -60,26 +60,26 @@ def QUBOConstruct(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB_sites)
     qubo, offset = QUBOConstruct_kernel(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB_sites)
     return coo_matrix(qubo), offset
 
-def QUBOSolve_SA(coo_qubo, offset, N):
+def QUBOSolve_SA(coo_qubo, offset, N, num_reads = 100, num_sweeps = 1000):
     qubo_dict = dict(zip([('X[%d]' % (i), 'X[%d]' % (j)) for (i, j) in zip(coo_qubo.row, coo_qubo.col)], coo_qubo.data))
     
     sampler = neal.SimulatedAnnealingSampler()
     start = time.time()
-    response = sampler.sample_qubo(qubo_dict, num_reads = 100, num_sweeps = 1000).first
+    response = sampler.sample_qubo(qubo_dict, num_reads = num_reads, num_sweeps = num_sweeps)
     end = time.time()
 
     # create a solution lil matrix, since most of entries would be zero
     # and lil is friendly to change data
     # and fill it
     lil_sol = lil_matrix((N, N), dtype = np.uint8)
-    for (key, value) in response.sample.items():
+    for (key, value) in response.first.sample.items():
         if int(value) != 0:
             idx = int(re.findall(r'\d+', key)[0])
             row, col = int(idx / N), int(idx % N)
             lil_sol[row, col] = 1
 
     print('Elapsed %.2f seconds' % (end - start))
-    print('Energy: ', response.energy + offset)
+    print('Energy: %.2f' % (response.first.energy + offset))
     return lil_sol.tocsr()
 
 def QUBOSolValid(csr_sol, IO_blocks, CLB_blocks, IO_sites, CLB_sites):
@@ -95,14 +95,20 @@ def QUBOSolValid(csr_sol, IO_blocks, CLB_blocks, IO_sites, CLB_sites):
 
 # numba function requires to run once to warmup (precompiled)
 def QUBOConstruct_warmup():
-    NM, MDM = np.array([[0, 3], [2, 4]], dtype = np.int64), np.array([[1, 2], [3, 4]], dtype = np.int64)
+    NM, MDM = np.array([[0, 3], [2, 4]]), np.array([[1, 2], [3, 4]])
     P_i, P_e = 200, 200
     IO_blocks, CLB_blocks, IO_sites, CLB_sites = List(), List(), List(), List()
     IO_blocks.append(0)
     CLB_blocks.append(1)
     IO_sites.append(0)
     CLB_sites.append(1)
-    QUBOConstruct(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB_sites)
+    qubo, offset = QUBOConstruct(NM, MDM, P_i, P_e, IO_blocks, CLB_blocks, IO_sites, CLB_sites)
+    golden_ref_qubo = np.array([
+        [-400, 400, 405, 12],
+        [0, -200, 13, 420],
+        [0, 0, -196, 420],
+        [0, 0, 0, -384]])
+    assert(np.array_equal(golden_ref_qubo, qubo.todense()))
 
 def QUBOConstruct_test():
     NM, MDM = np.random.randint(2, size = (64, 64), dtype = np.int64), np.random.randint(2, size = (64, 64), dtype = np.int64)
@@ -195,4 +201,4 @@ def QUBOVPRSolEval(vpr_placement, netlist_nodes, rrgraph_nodes, N, coo_qubo, off
     # flatten solution to vector
     flat_csr_sol = lil_sol.reshape((1, N**2)).tocsr()
     energy = flat_csr_sol.dot(coo_qubo.tocsr()).dot(flat_csr_sol.T)
-    print('Baseline Energy: ', energy.tocoo().data[0] + offset)
+    print('Baseline Energy: %.2f' % (energy.tocoo().data[0] + offset))
