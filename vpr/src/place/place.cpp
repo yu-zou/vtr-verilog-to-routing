@@ -442,16 +442,28 @@ static void print_place_status(const float t,
 static void initial_timing_cost_dump(/*const PlaceDelayModel* delay_model*/);
 /* end */
 
+static void vpr_load_initial_placement(const t_file_name_opts& filename_opts, t_direct_inf* directs, int num_directs) {
+	const auto& device_ctx = g_vpr_ctx.device();
+	auto& place_ctx = g_vpr_ctx.mutable_placement();
+
+	// load an existing placement as an initial placement
+	read_place(filename_opts.NetFile.c_str(), filename_opts.InitialPlaceFile.c_str(), filename_opts.verify_file_digests, device_ctx.grid, true);
+
+	// ensure placement macros are loaded so that they can be drawn after placement (e.g. during routing)
+	place_ctx.pl_macros = alloc_and_load_placement_macros(directs, num_directs);
+}
+
 /*****************************************************************************/
 void try_place(const t_placer_opts& placer_opts,
-               t_annealing_sched annealing_sched,
-               const t_router_opts& router_opts,
-               const t_analysis_opts& analysis_opts,
-               t_chan_width_dist chan_width_dist,
-               t_det_routing_arch* det_routing_arch,
-               std::vector<t_segment_inf>& segment_inf,
-               t_direct_inf* directs,
-               int num_directs) {
+    t_annealing_sched annealing_sched,
+    const t_router_opts& router_opts,
+    const t_analysis_opts& analysis_opts,
+    t_chan_width_dist chan_width_dist,
+    t_det_routing_arch* det_routing_arch,
+    std::vector<t_segment_inf>& segment_inf,
+    t_direct_inf* directs,
+    int num_directs,
+    const t_file_name_opts& filename_opts) {
     /* Does almost all the work of placing a circuit.  Width_fac gives the   *
      * width of the widest channel.  Place_cost_exp says what exponent the   *
      * width should be taken to when calculating costs.  This allows a       *
@@ -512,7 +524,28 @@ void try_place(const t_placer_opts& placer_opts,
     alloc_and_load_placement_structs(placer_opts.place_cost_exp, placer_opts,
                                      directs, num_directs);
 
-    initial_placement(placer_opts.pad_loc_type, placer_opts.pad_loc_file.c_str());
+	// Modified by Yu Zou
+    //initial_placement(placer_opts.pad_loc_type, placer_opts.pad_loc_file.c_str());
+	if (!filename_opts.InitialPlaceFile.empty()) {
+		// if defined, a custom placement is loaded as an initial placement
+		vpr_load_initial_placement(filename_opts, directs, num_directs);
+		vtr::srandom(unsigned(3210001534));
+	} else {
+		initial_placement(placer_opts.pad_loc_type, placer_opts.pad_loc_file.c_str());
+		vtr::srandom(unsigned(3210001534));
+	}
+
+	// Output initial placement
+	// Added by Yu Zou - 2019.11.4
+	VTR_LOG("Dumping initial placement\n");
+	auto& place_ctx = g_vpr_ctx.placement();
+	VTR_LOG("#block name\tx\ty\tsubblk\n");
+	for (auto blk_id: cluster_ctx.clb_nlist.blocks()) {
+		t_pl_loc loc = place_ctx.block_locs[blk_id].loc;
+		VTR_LOG("%s\t%d\t%d\t%d\n", cluster_ctx.clb_nlist.block_name(blk_id).c_str(),
+				loc.x, loc.y, loc.z);
+	}
+
     init_draw_coords((float)width_fac);
     //Enables fast look-up of atom pins connect to CLB pins
     ClusteredPinAtomPinsLookup netlist_pin_lookup(cluster_ctx.clb_nlist, pb_gpin_lookup);

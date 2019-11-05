@@ -10,6 +10,7 @@ void try_place(const t_placer_opts& placer_opts,
                t_det_routing_arch* det_routing_arch,
                std::vector<t_segment_inf>& segment_inf,
                t_direct_inf* directs,
-               int num_directs);
+               int num_directs,
+			   const t_file_name_opts& filename_opts);
 
 #endif

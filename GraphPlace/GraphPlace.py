@@ -18,8 +18,8 @@ def main():
     parser.add_argument('placement_file', type = str, help = 'File path for the result placement')
     parser.add_argument('vpr_placement_file', type = str, help = 'VPR generate baseline placement')
     parser.add_argument('delta_delay_lookup_file', type = str, help = 'File path for delta delay lookup')
-    parser.add_argument('--num_reads', type = int, default = 100, help = 'SA num_reads')
-    parser.add_argument('--num_sweeps', type = int, default = 1000, help = 'SA num_sweeps')
+    parser.add_argument('--num_reads', type = int, default = 100, help = 'SA num_reads, default: 100')
+    parser.add_argument('--num_sweeps', type = int, default = 1000, help = 'SA num_sweeps, default: 1000')
     
     args = parser.parse_args()
 
@@ -37,7 +37,8 @@ def main():
 
     RRGraph = rr_graph_util.RRGraph(deviceXML, delta_delay_lookup_file, mdg_checkpoint_file)
     # print('RRGraph:')
-    # pprint(RRGraph.MDM)
+    pprint(RRGraph.MDM)
+    exit(0)
     # print(RRGraph.nodes, RRGraph.IO_sites, RRGraph.CLB_sites)
 
     NGraph = netlist_graph_util.NetlistGraph(netlist_edges_criticality_file)

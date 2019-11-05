@@ -13,6 +13,7 @@ struct t_options {
     argparse::ArgValue<std::string> CircuitName;
     argparse::ArgValue<std::string> NetFile;
     argparse::ArgValue<std::string> PlaceFile;
+	argparse::ArgValue<std::string> InitialPlaceFile;
     argparse::ArgValue<std::string> RouteFile;
     argparse::ArgValue<std::string> BlifFile;
     argparse::ArgValue<std::string> ActFile;

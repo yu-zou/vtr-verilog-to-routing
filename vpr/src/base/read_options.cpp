@@ -990,6 +990,10 @@ argparse::ArgumentParser create_arg_parser(std::string prog_name, t_options& arg
         .help("Path to placement file")
         .show_in(argparse::ShowIn::HELP_ONLY);
 
+	file_grp.add_argument(args.InitialPlaceFile, "--initial_place_file")
+		.help("Path to initial placement file, random initial placement if not specified")
+		.show_in(argparse::ShowIn::HELP_ONLY);
+
     file_grp.add_argument(args.RouteFile, "--route_file")
         .help("Path to routing file")
         .show_in(argparse::ShowIn::HELP_ONLY);

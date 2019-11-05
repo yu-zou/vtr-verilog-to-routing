@@ -656,6 +656,9 @@ struct t_file_name_opts {
     std::string CmosTechFile;
     std::string out_file_prefix;
     bool verify_file_digests;
+	
+	// An iniital placement file to be used as a starting point instead of random placement file
+	std::string InitialPlaceFile;
 };
 
 /* Options for netlist loading */

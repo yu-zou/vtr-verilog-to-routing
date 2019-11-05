@@ -18,7 +18,8 @@
 void read_place(const char* net_file,
                 const char* place_file,
                 bool verify_file_digests,
-                const DeviceGrid& grid) {
+                const DeviceGrid& grid,
+				/*Added by Yu Zou - 2019.11.3*/ bool is_loading_initial_placement) {
     std::ifstream fstream(place_file);
     if (!fstream) {
         VPR_FATAL_ERROR(VPR_ERROR_PLACE_F,
@@ -127,6 +128,12 @@ void read_place(const char* net_file,
             place_ctx.block_locs[blk_id].loc.x = block_x;
             place_ctx.block_locs[blk_id].loc.y = block_y;
             place_ctx.block_locs[blk_id].loc.z = block_z;
+
+			// Added by Yu Zou - 2019.11.3
+			if (is_loading_initial_placement) {
+				place_ctx.grid_blocks[block_x][block_y].blocks[block_z] = blk_id;
+				place_ctx.grid_blocks[block_x][block_y].usage++;
+			}
 
         } else {
             //Unrecognized

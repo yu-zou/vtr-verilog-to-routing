@@ -167,7 +167,7 @@ int binary_search_place_and_route(t_placer_opts placer_opts,
             placer_opts.place_chan_width = current;
             try_place(placer_opts, annealing_sched, router_opts, analysis_opts,
                       arch->Chans, det_routing_arch, segment_inf,
-                      arch->Directs, arch->num_directs);
+                      arch->Directs, arch->num_directs, filename_opts);
         }
         success = try_route(current,
                             router_opts,
@@ -299,7 +299,7 @@ int binary_search_place_and_route(t_placer_opts placer_opts,
                 placer_opts.place_chan_width = current;
                 try_place(placer_opts, annealing_sched, router_opts, analysis_opts,
                           arch->Chans, det_routing_arch, segment_inf,
-                          arch->Directs, arch->num_directs);
+                          arch->Directs, arch->num_directs, filename_opts);
             }
             success = try_route(current,
                                 router_opts,

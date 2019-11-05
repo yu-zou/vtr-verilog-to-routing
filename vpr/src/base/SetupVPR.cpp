@@ -83,6 +83,7 @@ void SetupVPR(const t_options* Options,
     FileNameOpts->BlifFile = Options->BlifFile;
     FileNameOpts->NetFile = Options->NetFile;
     FileNameOpts->PlaceFile = Options->PlaceFile;
+	FileNameOpts->InitialPlaceFile = Options->InitialPlaceFile;
     FileNameOpts->RouteFile = Options->RouteFile;
     FileNameOpts->ActFile = Options->ActFile;
     FileNameOpts->PowerFile = Options->PowerFile;
